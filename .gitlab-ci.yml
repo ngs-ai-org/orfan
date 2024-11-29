@@ -1,0 +1,86 @@
+variables:
+  BUILDAH_CONTAINER: "harbor.ngs-ai.com/tools/buildah"
+  BUILDAH_CONTAINER_TAG: "1.21.3.4"
+  TRIVY_CONTAINER: "harbor.ngs-ai.com/public/trivy"
+  TRIVY_CONTAINER_TAG: "0.18.3"
+  BUILDER: buildah
+
+stages:
+  - test
+  - build
+  - dockerbuild
+  - release
+
+.buildah:
+  image:
+    name: $BUILDAH_CONTAINER:$BUILDAH_CONTAINER_TAG
+    entrypoint: ["/bin/sh", "-c"]
+
+test:
+  stage: test
+  image: harbor.ngs-ai.com/docker/rust-docker@sha256:0f6c22479f016af2ef85d5728b65f47048e369aadeb460cfe6357b56f1f8bff3
+  script:
+    - apt-get update && apt-get install -y  cmake
+    - rustc --version && cargo --version
+    - cargo test --all --verbose
+
+build:
+  stage: build
+  needs:
+    - job: test
+      artifacts: false
+  image: harbor.ngs-ai.com/docker/rust-docker@sha256:0f6c22479f016af2ef85d5728b65f47048e369aadeb460cfe6357b56f1f8bff3
+  artifacts:
+    paths:
+      - target/x86_64-unknown-linux-gnu/release/orfan
+  script:
+    - apt-get update && apt-get install -y  cmake
+    - cargo build --release --target x86_64-unknown-linux-gnu
+
+
+
+
+dockerbuild:
+  stage: dockerbuild
+  needs:
+    - job: build
+      artifacts: true
+  extends: .buildah
+  script:
+    - make build dump
+  artifacts:
+    when: always
+    paths:
+      - build.oci
+  allow_failure: false
+
+
+release-latest:
+  needs:
+    - job: dockerbuild
+      artifacts: true
+  stage: release
+  extends: .buildah
+  script:
+    - make load publish-latest
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: manual
+
+release-tagged:
+  needs:
+    - job: dockerbuild
+      artifacts: true
+  stage: release
+  extends: .buildah
+  script:
+    - make load publish-version publish-latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: always
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+      when: never
+    - when: never

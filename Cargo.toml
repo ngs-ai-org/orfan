@@ -1,0 +1,31 @@
+[package]
+name = "orfan"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+[dependencies]
+#bambam = { version = "0.1.0", registry = "ngs_ai" }
+rust_tools = {version = "0.1.3", registry = "ngs_ai" }
+log = "0.4.22"
+pretty_env_logger = "0.5.0"
+chrono = "0.4.38"
+regex = "1"
+clap = { version = "4.3.2", features = ["derive"] }
+bio = "1.2.0"
+libz-sys = "1.1.9"
+progress = "0.2.0"
+itertools = "0.10.5"
+sha2 = "0.10.6"
+digest = "0.10.7"
+rustc-hash = { version = "1.0", default-features = true }
+colour = {version = "0.7.0"}
+faimm = {version = "0.4.0"}
+rust-htslib = "0.44.1"
