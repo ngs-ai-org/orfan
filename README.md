@@ -1,8 +1,6 @@
 # Open Reading Frame analysis (ORFan) toolkit
 
-:heavy_exclamation_mark: ORFan is deprecated! Please use the version present here.
 
-![](data/proteinator.jpeg)
 
 ORFan is a suite of tools used for generating transcripts baring mutations or performing in-silico translation of cDNA sequences. It is written in Rust. 
 
